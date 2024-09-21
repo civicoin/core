@@ -1,0 +1,2 @@
+# core
+The centralized Core 
