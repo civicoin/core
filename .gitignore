@@ -1,0 +1,6 @@
+.env
+.env.prod
+
+node_modules
+
+src/generated

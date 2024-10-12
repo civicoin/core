@@ -1,0 +1,42 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "description": "The centralized Core of Civicoin",
+  "main": "app.ts",
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+		"build": "tsc",
+		"start": "node dist/app.js",
+		"lint": "eslint . --ext .ts",
+		"format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
+		"clean": "rm -rf dist/",
+		"prebuild": "npm run clean",
+    "proto:generate": "grpc_tools_node_protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --js_out=import_style=commonjs,binary:./src/generated --ts_out=grpc_js:./src/generated --grpc_out=grpc_js:./src/generated -I ./node_modules/civi/protos/core/ ./node_modules/civi/protos/core/*.proto"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/civicoin/core.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/civicoin/core/issues"
+  },
+  "homepage": "https://github.com/civicoin/core#readme",
+  "devDependencies": {
+    "@types/node": "22.7.5",
+    "@types/pino": "^7.0.5",
+    "civi": "git://github.com/civicoin/civi.git",
+    "grpc_tools_node_protoc_ts": "^5.3.3",
+    "grpc-tools": "^1.12.4",
+    "pino-pretty": "^11.2.2",
+    "prisma": "5.20.0",
+    "typescript": "5.6.3"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "1.12.2",
+    "@grpc/proto-loader": "0.7.13",
+    "amqplib": "0.10.4",
+    "pino": "^9.4.0"
+  }
+}
