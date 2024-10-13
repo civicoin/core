@@ -15,7 +15,7 @@ The service works with transactions. All the coin transfers, holds and liabiliti
 -   Services: gRPC methods that handle incoming requests and delegate tasks to the appropriate controllers
 -   Workers: Listen for messages from RabbitMQ and process background tasks
 
-# Setup
+## Setup
 
 1. Install dependencies — `npm i`
 2. Generate the Protobuf protos — `npm run proto:generate`
