@@ -1,3 +1,3 @@
-import balanceServiceHandler from './balance'
+import getBalanceServiceHandler from './balance'
 
-export { balanceServiceHandler }
+export { getBalanceServiceHandler }

@@ -1,25 +1,53 @@
+import amqplib from 'amqplib'
 import * as grpc from '@grpc/grpc-js'
 
 import { BalanceService } from './generated/balance_grpc_pb'
 
 import logger from './utils/logger'
-import { balanceServiceHandler } from './services'
+import startTxWorker from './workers/txWorker'
+import { getBalanceServiceHandler } from './services'
 
-async function main() {
+const setupRabbitMQ = async (): Promise<[amqplib.Connection, amqplib.Channel]> => {
+	const connection = await amqplib.connect('amqp://localhost')
+	const channel = await connection.createChannel()
+
+	await startTxWorker(channel)
+
+	return [connection, channel]
+}
+
+const setupGrpcServer = async (channel: amqplib.Channel) => {
 	const server = new grpc.Server()
 
-	server.addService(BalanceService, balanceServiceHandler)
+	server.addService(BalanceService, getBalanceServiceHandler(channel))
 
-	const port = process.env.GRPC_PORT || '50051'
-	server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), async () => {
-		logger.info(`gRPC server running at http://127.0.0.1:${port}`)
-		server.start()
+	const grpcPort = process.env.GRPC_PORT || '50051'
+	server.bindAsync(`0.0.0.0:${grpcPort}`, grpc.ServerCredentials.createInsecure(), () => {
+		logger.info(`gRPC server running at ${grpcPort}`)
 	})
 }
 
-main().catch(error => {
-	logger.error('Error starting the server:', error)
-})
+const main = async () => {
+	try {
+		const [connection, channel] = await setupRabbitMQ()
+		await setupGrpcServer(channel)
+
+		process.on('SIGINT', async () => {
+			logger.info('Received SIGINT. Shutting down gracefully....')
+			try {
+				await channel.close()
+				await connection.close()
+				logger.info('RabbitMQ connection closed')
+				process.exit(0)
+			} catch (err) {
+				logger.error(`Error during shutdown: ${err}`)
+				process.exit(1)
+			}
+		})
+	} catch (err) {
+		logger.fatal(`Error starting the server: ${err}`)
+	}
+}
 
 process.on('uncaughtException', error => {
 	logger.fatal(`Uncaught Exception: ${error.message}`)
@@ -30,3 +58,5 @@ process.on('unhandledRejection', reason => {
 	logger.fatal(`Unhandled Rejection: ${reason}`)
 	process.exit(1)
 })
+
+main()

@@ -19,3 +19,7 @@ The service works with transactions. All the coin transfers, holds and liabiliti
 
 1. Install dependencies — `npm i`
 2. Generate the Protobuf protos — `npm run proto:generate`
+
+## Transactions and issuance
+
+-   The system can't issue more then (10^12 - 1) coins (the max amount of decimals — 6, but there is no information about them in the Core)
