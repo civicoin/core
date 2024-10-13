@@ -3,20 +3,30 @@ import { Transaction } from '@prisma/client'
 
 import prisma from '../utils/prisma'
 
-const sumTransactionsAmounts = (transactions: Transaction[]): BigNumber =>
+const sumTransactionsAmounts = (transactions: Pick<Transaction, 'amount'>[]): BigNumber =>
 	transactions.reduce((acc, transaction) => {
 		return acc.plus(transaction.amount)
 	}, new BigNumber(0))
 
-export async function getMemberBalance(memberId: string): Promise<string> {
+export async function getMemberBalance(systemId: string, memberId: string): Promise<string> {
+	// in future there will be the account statements, and we will need to sum only the transactions after them
+
 	const incomeTransactions = await prisma.transaction.findMany({
+		select: {
+			amount: true
+		},
 		where: {
+			systemId,
 			receiverId: memberId
 		}
 	})
 
 	const expenseTransactions = await prisma.transaction.findMany({
+		select: {
+			amount: true
+		},
 		where: {
+			systemId,
 			senderId: memberId
 		}
 	})
