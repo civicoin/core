@@ -1,3 +1,3 @@
-import getBalanceServiceHandler from './balance'
+import getCoreServiceHandler from './core'
 
-export { getBalanceServiceHandler }
+export { getCoreServiceHandler }

@@ -1,11 +1,11 @@
 import amqplib from 'amqplib'
 import * as grpc from '@grpc/grpc-js'
 
-import { BalanceService } from './generated/balance_grpc_pb'
+import { CoreService } from './generated/core_grpc_pb'
 
 import logger from './utils/logger'
 import startTxWorker from './workers/txWorker'
-import { getBalanceServiceHandler } from './services'
+import { getCoreServiceHandler } from './services'
 
 const setupRabbitMQ = async (): Promise<[amqplib.Connection, amqplib.Channel]> => {
 	const connection = await amqplib.connect('amqp://localhost')
@@ -19,7 +19,7 @@ const setupRabbitMQ = async (): Promise<[amqplib.Connection, amqplib.Channel]> =
 const setupGrpcServer = async (channel: amqplib.Channel) => {
 	const server = new grpc.Server()
 
-	server.addService(BalanceService, getBalanceServiceHandler(channel))
+	server.addService(CoreService, getCoreServiceHandler(channel))
 
 	const grpcPort = process.env.GRPC_PORT || '50051'
 	server.bindAsync(`0.0.0.0:${grpcPort}`, grpc.ServerCredentials.createInsecure(), () => {
