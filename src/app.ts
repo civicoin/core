@@ -5,7 +5,11 @@ import { CoreService } from './generated/core_grpc_pb'
 
 import logger from './utils/logger'
 import startTxWorker from './workers/txWorker'
-import { getCoreServiceHandler } from './services'
+import { getCoreServiceHandler } from './grpc'
+
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const setupRabbitMQ = async (): Promise<[amqplib.Connection, amqplib.Channel]> => {
 	const connection = await amqplib.connect('amqp://localhost')

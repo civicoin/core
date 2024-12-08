@@ -1,9 +1,12 @@
+import dotenv from 'dotenv'
 import amqplib from 'amqplib'
 import { getMessageWithHMAC, safeJsonParse, verifyMessageWithHMAC } from 'civi'
 
 import logger from '../utils/logger'
 
-const key = process.env.HMAC_SECRET || '123'
+dotenv.config()
+
+const key = process.env.HMAC_SECRET || ''
 
 export enum RabbitMQQueue {
 	tx = 'tx'
