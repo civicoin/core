@@ -1,20 +1,29 @@
-import { sendMemberTransaction } from '../models/transaction'
+import { processIssueTransaction, processSendTransaction } from '../models/transaction'
 
-export type SendTxMessage = {
-	action: 'send'
+type TxCommonMessage = {
 	systemId: string
-	senderId: string
 	receiverId: string
 	amount: string
 	signature: string
 }
 
+export type SendTxMessage = {
+	action: 'send'
+	senderId: string
+} & TxCommonMessage
+
 export const sendTxController = async (msg: SendTxMessage) => {
 	const { systemId, senderId, receiverId, amount, signature } = msg
 
-	try {
-		await sendMemberTransaction(systemId, senderId, receiverId, amount, signature)
-	} catch (err) {
-		console.error(`Failed to send transaction: ${err}`)
-	}
+	await processSendTransaction(systemId, senderId, receiverId, amount, signature)
+}
+
+export type IssueTxMessage = {
+	action: 'issue'
+} & TxCommonMessage
+
+export const issueTxController = async (msg: IssueTxMessage) => {
+	const { systemId, receiverId, amount, signature } = msg
+
+	await processIssueTransaction(systemId, receiverId, amount, signature)
 }

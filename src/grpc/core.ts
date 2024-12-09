@@ -1,7 +1,7 @@
 import amqplib from 'amqplib'
 
 import logger from '../utils/logger'
-import { getMemberBalance } from '../models/transaction'
+import { getMemberBalance } from '../models/balance'
 
 import { ICoreServer } from '../generated/core_grpc_pb'
 import { GetBalanceResponse } from '../generated/core_pb'

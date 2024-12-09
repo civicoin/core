@@ -1,43 +1,49 @@
 import BigNumber from 'bignumber.js'
-import { Transaction } from '@prisma/client'
+import { TransactionType } from '@prisma/client'
 
 import prisma from '../utils/prisma'
 
-const sumTransactionsAmounts = (transactions: Pick<Transaction, 'amount'>[]): BigNumber =>
-	transactions.reduce((acc, transaction) => {
-		return acc.plus(transaction.amount)
-	}, new BigNumber(0))
+import { getMemberBalance } from './balance'
 
-export const getMemberBalance = async (systemId: string, memberId: string): Promise<string> => {
-	// in future there will be the account statements, and we will need to sum only the transactions after them
-
-	const incomeTransactions = await prisma.transaction.findMany({
-		select: {
-			amount: true
-		},
-		where: {
-			systemId,
-			receiverId: memberId
-		}
-	})
-
-	const expenseTransactions = await prisma.transaction.findMany({
-		select: {
-			amount: true
-		},
-		where: {
-			systemId,
-			senderId: memberId
-		}
-	})
-
-	const income = sumTransactionsAmounts(incomeTransactions)
-	const expense = sumTransactionsAmounts(expenseTransactions)
-
-	return income.minus(expense).toString()
+type TxCommonData = {
+	systemId: string
+	receiverId: string
+	amount: string
+	signature: string
 }
 
-export const sendMemberTransaction = async (
+const processTransaction = async <T extends TxCommonData>(
+	txType: TransactionType,
+	txData: T,
+	processChecks?: (txData?: T) => Promise<string | undefined>
+) => {
+	let failedTxReason: string | null = null
+	try {
+		const successfullTx = await prisma.$transaction(async prisma => {
+			const optimisticTx = await prisma.transaction.create({
+				data: {
+					...txData,
+					type: txType
+				} as T & { type: TransactionType }
+			})
+
+			const error = processChecks ? await processChecks(txData) : undefined
+			if (error) {
+				failedTxReason = error
+				throw new Error(error)
+			}
+
+			return optimisticTx
+		})
+
+		console.log(`${txType} transaction has been processed succesfully`, successfullTx.id)
+	} catch (err) {
+		console.error(`Failed to process ${txType} transaction (reason=${failedTxReason}): ${err}`)
+		// todo: create failed tx to another table
+	}
+}
+
+export const processSendTransaction = async (
 	systemId: string,
 	senderId: string,
 	receiverId: string,
@@ -52,24 +58,32 @@ export const sendMemberTransaction = async (
 		signature
 	}
 
-	let failedTxReason: string | null = null
-	try {
-		const successfullTx = await prisma.$transaction(async prisma => {
-			const optimisticTx = await prisma.transaction.create({ data: txData })
-
+	await processTransaction<TxCommonData & { senderId: string }>(
+		TransactionType.SEND,
+		txData,
+		async () => {
 			const currentBalance = await getMemberBalance(systemId, senderId)
 
 			if (new BigNumber(currentBalance).minus(amount).lessThan(0)) {
-				failedTxReason = 'INSUFFICIENT_BALANCE'
-				throw new Error('Insufficient balance')
+				return 'INSUFFICIENT_BALANCE'
 			}
+		}
+	)
+}
 
-			return optimisticTx
-		})
-
-		console.log('Transaction has been sent succesfully', successfullTx.id)
-	} catch (err) {
-		console.error(`Failed to send transaction (reason=${failedTxReason}): ${err}`)
-		// todo: create failed tx to another table
+export const processIssueTransaction = async (
+	systemId: string,
+	receiverId: string,
+	amount: string,
+	signature: string
+) => {
+	const txData = {
+		systemId,
+		receiverId,
+		amount,
+		signature
 	}
+
+	// todo: additional issue checks
+	await processTransaction<TxCommonData>(TransactionType.ISSUE, txData)
 }

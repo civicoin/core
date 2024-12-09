@@ -8,18 +8,19 @@ generator client {
 }
 
 model Transaction {
-    id         String   @id @default(uuid()) @db.Uuid
-    systemId   String   @map("system_id") @db.Uuid
-    senderId   String?  @map("sender_id") @db.Uuid
-    receiverId String   @map("receiver_id") @db.Uuid
-    amount     String   @db.VarChar(255)
-    timestamp  DateTime @default(now()) @db.Timestamptz(6)
-    signature  String   @db.VarChar(255)
+    id         String          @id @default(uuid()) @db.Uuid
+    systemId   String          @map("system_id") @db.Uuid
+    senderId   String?         @map("sender_id") @db.Uuid
+    receiverId String          @map("receiver_id") @db.Uuid
+    amount     String          @db.VarChar(255)
+    timestamp  DateTime        @default(now()) @db.Timestamptz(6)
+    signature  String          @db.VarChar(255)
+    type       TransactionType
 
     @@map("transactions")
 }
 
 enum TransactionType {
-    TRANSFER
+    SEND
     ISSUE
 }

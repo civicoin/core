@@ -12,7 +12,6 @@ The service works with transactions. All the coin transfers, holds and liabiliti
 
 -   Models: The data structure and methods for interacting with the DB
 -   Controllers: Business logic and interactions between models and services
--   Services: gRPC methods that handle incoming requests and delegate tasks to the appropriate controllers
 -   Workers: Listen for messages from RabbitMQ and process background tasks
 
 ## Setup
