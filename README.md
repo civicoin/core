@@ -8,6 +8,14 @@ The service works with transactions. All the coin transfers, holds and liabiliti
 -   **DB:** PostgreSQL
 -   Communication with gRPC (sync) and RabbitMQ (async)
 
+# Docker
+
+Run Core and Postgres
+
+```
+docker compose -p civicoin-core -f ./setup/docker-compose.yml up -d
+```
+
 ### Key Components
 
 -   Models: The data structure and methods for interacting with the DB

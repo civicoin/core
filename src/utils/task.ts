@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
 import amqplib from 'amqplib'
-import { getMessageWithHMAC, safeJsonParse, verifyMessageWithHMAC } from 'civi'
+import { getMessageWithHMAC, safeJsonParse, verifyMessageWithHMAC } from '../tempCivi'
 
 import logger from '../utils/logger'
 

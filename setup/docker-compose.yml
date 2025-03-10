@@ -1,0 +1,38 @@
+services:
+    postgres:
+        image: postgres:12
+        ports:
+            - '5432:5432'
+        healthcheck:
+            test: ['CMD', 'pg_isready', '-U', 'postgres']
+            interval: 5s
+            timeout: 60s
+            retries: 10
+        env_file:
+            - ./.docker.env
+        networks:
+            - internal
+    core:
+        build:
+            context: ..
+            dockerfile: ./setup/DOCKERFILE
+        depends_on:
+            postgres:
+                condition: service_healthy
+        env_file:
+            - ./.docker.env
+        ports:
+            - '50051:50051'
+        command: sh -c "
+            echo 'Waiting for database....';
+            until pg_isready -h postgres -U postgres; do sleep 2; done;
+            echo 'Database is ready, running migrations....';
+            npx prisma migrate deploy;
+            echo 'Starting core service....';
+            node build/app.js"
+        networks:
+            - internal
+networks:
+    internal:
+        name: shared_internal_network
+        external: true

@@ -3,14 +3,12 @@ import amqplib from 'amqplib'
 import logger from '../utils/logger'
 import { getMemberBalance } from '../models/balance'
 
-import { ICoreServer } from '../generated/core_grpc_pb'
-import { GetBalanceResponse } from '../generated/core_pb'
+import { CoreServer } from '../generated/core'
 
-const getCoreServiceHandler = (channel: amqplib.Channel): ICoreServer => ({
+const getCoreServiceHandler = (channel: amqplib.Channel): CoreServer => ({
 	getBalance: async (call, callback) => {
 		const req = call.request
-
-		const [systemId, memberId] = [req.getSystemid(), req.getMemberid()]
+		const [systemId, memberId] = [req.systemId, req.memberId]
 
 		if (systemId === '' || memberId === '') {
 			logger.error('Invalid request to get balance')
@@ -19,11 +17,8 @@ const getCoreServiceHandler = (channel: amqplib.Channel): ICoreServer => ({
 
 		const balance = await getMemberBalance(systemId, memberId)
 
-		const res = new GetBalanceResponse()
-		res.setBalance(balance)
-
 		logger.info(`Processed request to get balance for system=${systemId}, member=${memberId}`)
-		return callback(null, res)
+		return callback(null, { balance })
 	}
 })
 

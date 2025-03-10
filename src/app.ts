@@ -1,7 +1,7 @@
 import amqplib from 'amqplib'
 import * as grpc from '@grpc/grpc-js'
 
-import { CoreService } from './generated/core_grpc_pb'
+import { CoreService } from './generated/core'
 
 import logger from './utils/logger'
 import startTxWorker from './workers/txWorker'
@@ -12,7 +12,9 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const setupRabbitMQ = async (): Promise<[amqplib.Connection, amqplib.Channel]> => {
-	const connection = await amqplib.connect('amqp://localhost')
+	const rabbitUrl = process.env.RABBIT_URL || 'amqp://localhost'
+
+	const connection = await amqplib.connect(rabbitUrl)
 	const channel = await connection.createChannel()
 
 	await startTxWorker(channel)
@@ -50,6 +52,7 @@ const main = async () => {
 		})
 	} catch (err) {
 		logger.fatal(`Error starting the server: ${err}`)
+		console.log(err)
 	}
 }
 
