@@ -5,8 +5,7 @@ RUN apt-get update -y && apt-get install -y openssl && apt-get install -y postgr
 WORKDIR /app
 
 COPY package*.json ./
-COPY prisma ./prisma
-COPY setup/.docker.env .env
+COPY package-lock.json ./
 
 COPY . .
 
